@@ -1,0 +1,21 @@
+name: rag-ticket-agent
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      RAG_AGENT_DATABASE_PATH: /app/data/app.db
+      RAG_AGENT_CHROMA_DIR: /app/data/chroma
+      RAG_AGENT_UPLOAD_DIR: /app/uploads
+    volumes:
+      - ./backend/data:/app/data
+      - ./backend/uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

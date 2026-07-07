@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>企业知识库 RAG 客服工作台</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">企业知识库 RAG 客服 Agent</p>
+        <h1>企业知识库客服工作台</h1>
+      </div>
+      <div class="status-pill" id="apiStatus">正在检查接口</div>
+    </header>
+
+    <main class="layout">
+      <section class="panel upload-panel" aria-labelledby="uploadTitle">
+        <div class="panel-header">
+          <div>
+            <p class="section-kicker">知识库</p>
+            <h2 id="uploadTitle">上传并入库</h2>
+          </div>
+          <span class="step-label">TXT / MD</span>
+        </div>
+        <form id="uploadForm" class="stack">
+          <label class="file-drop">
+            <input id="documentFile" name="file" type="file" accept=".txt,.md" />
+            <span>选择企业文档</span>
+            <strong id="fileName">尚未选择文件</strong>
+          </label>
+          <div class="control-grid">
+            <label>
+              切分长度
+              <input id="chunkSize" type="number" min="40" max="1000" value="240" />
+            </label>
+            <label>
+              重叠长度
+              <input id="chunkOverlap" type="number" min="0" max="200" value="40" />
+            </label>
+          </div>
+          <button class="primary" type="submit">上传、切分、向量化</button>
+        </form>
+        <div class="activity" id="pipelineLog">等待上传文档。</div>
+      </section>
+
+      <section class="panel answer-panel" aria-labelledby="askTitle">
+        <div class="panel-header">
+          <div>
+            <p class="section-kicker">RAG 问答</p>
+            <h2 id="askTitle">向知识库提问</h2>
+          </div>
+          <span class="step-label">必须返回来源</span>
+        </div>
+        <form id="questionForm" class="stack">
+          <label>
+            问题
+            <textarea id="questionInput" rows="4" placeholder="请输入要向知识库提问的问题"></textarea>
+          </label>
+          <div class="ask-row">
+            <label>
+              召回数量
+              <input id="topK" type="number" min="1" max="10" value="2" />
+            </label>
+            <button class="primary" type="submit">开始提问</button>
+          </div>
+        </form>
+        <article class="answer-box" id="answerBox">
+          <p class="muted">提问后会显示回答、置信度、来源引用和工单状态。</p>
+        </article>
+      </section>
+
+      <section class="panel metrics-panel" aria-labelledby="metricsTitle">
+        <div class="panel-header">
+          <div>
+            <p class="section-kicker">效果评估</p>
+            <h2 id="metricsTitle">运营指标</h2>
+          </div>
+          <div class="header-actions">
+            <button class="ghost danger" id="resetButton" type="button">重置演示数据</button>
+            <button class="ghost" id="refreshButton" type="button">刷新</button>
+          </div>
+        </div>
+        <div class="metrics-grid" id="metricsGrid"></div>
+      </section>
+
+      <section class="panel records-panel" aria-labelledby="recordsTitle">
+        <div class="panel-header">
+          <div>
+            <p class="section-kicker">后台</p>
+            <h2 id="recordsTitle">记录</h2>
+          </div>
+        </div>
+        <div class="tabs" role="tablist" aria-label="记录视图">
+          <button class="tab active" data-view="documents" type="button">文档</button>
+          <button class="tab" data-view="qa" type="button">问答</button>
+          <button class="tab" data-view="tickets" type="button">工单</button>
+        </div>
+        <div class="record-list" id="recordList"></div>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
