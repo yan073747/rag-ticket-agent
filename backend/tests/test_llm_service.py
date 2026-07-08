@@ -5,6 +5,7 @@ from app.services.llm_service import (
     LLMServiceError,
     _build_system_prompt,
     _build_user_prompt,
+    _strip_markdown_formatting,
     generate_rag_answer,
     is_llm_configured,
 )
@@ -50,6 +51,26 @@ class LLMServiceTest(unittest.TestCase):
         self.assertIn("纯文本", system_prompt)
         self.assertIn("不要使用 Markdown", system_prompt)
         self.assertIn("不要使用 Markdown", user_prompt)
+
+    def test_strip_markdown_formatting_removes_bold_markers(self):
+        answer = (
+            "普通员工出差到上海的住宿报销标准为 **350元/间/晚**，"
+            "出差餐饮补贴为 **100元/天**。"
+        )
+
+        cleaned = _strip_markdown_formatting(answer)
+
+        self.assertEqual(
+            cleaned,
+            "普通员工出差到上海的住宿报销标准为 350元/间/晚，出差餐饮补贴为 100元/天。",
+        )
+
+    def test_strip_markdown_formatting_removes_headings_and_bullets(self):
+        answer = "# 报销标准\n- 住宿标准：`350元/间/晚`\n- 餐补：100元/天"
+
+        cleaned = _strip_markdown_formatting(answer)
+
+        self.assertEqual(cleaned, "报销标准\n住宿标准：350元/间/晚\n餐补：100元/天")
 
 
 if __name__ == "__main__":

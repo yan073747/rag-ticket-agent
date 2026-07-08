@@ -1,4 +1,5 @@
 import json
+import re
 import urllib.error
 import urllib.request
 
@@ -61,13 +62,27 @@ def generate_rag_answer(
         raise LLMServiceError(f"DeepSeek request failed: {exc}") from exc
 
     try:
-        answer = response_body["choices"][0]["message"]["content"].strip()
+        answer = _strip_markdown_formatting(
+            response_body["choices"][0]["message"]["content"].strip()
+        )
     except (KeyError, IndexError, TypeError) as exc:
         raise LLMServiceError("DeepSeek response does not contain answer text") from exc
 
     if not answer:
         raise LLMServiceError("DeepSeek returned an empty answer")
     return answer
+
+
+def _strip_markdown_formatting(text: str) -> str:
+    cleaned = text
+    cleaned = re.sub(r"\*\*(.*?)\*\*", r"\1", cleaned)
+    cleaned = re.sub(r"__(.*?)__", r"\1", cleaned)
+    cleaned = re.sub(r"(?<!\*)\*(?!\*)(.*?)(?<!\*)\*(?!\*)", r"\1", cleaned)
+    cleaned = re.sub(r"(?<!_)_(?!_)(.*?)(?<!_)_(?!_)", r"\1", cleaned)
+    cleaned = re.sub(r"^#{1,6}\s+", "", cleaned, flags=re.MULTILINE)
+    cleaned = re.sub(r"^\s*[-*+]\s+", "", cleaned, flags=re.MULTILINE)
+    cleaned = re.sub(r"`([^`]+)`", r"\1", cleaned)
+    return cleaned.strip()
 
 
 def _build_system_prompt() -> str:
