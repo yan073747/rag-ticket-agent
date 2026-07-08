@@ -5,6 +5,7 @@ import tempfile
 import unittest
 import warnings
 from pathlib import Path
+from unittest.mock import patch
 
 warnings.filterwarnings(
     "ignore",
@@ -72,6 +73,52 @@ class RagAnswerTest(unittest.TestCase):
                 self.assertGreater(row[2], 0)
                 self.assertEqual(json.loads(row[3])[0]["document_id"], document_id)
                 self.assertEqual(ticket_count, 0)
+            finally:
+                os.environ.pop("RAG_AGENT_DATABASE_PATH", None)
+                os.environ.pop("RAG_AGENT_UPLOAD_DIR", None)
+                os.environ.pop("RAG_AGENT_CHROMA_DIR", None)
+
+    def test_answer_question_uses_llm_answer_when_confidence_is_high(self):
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as temp_dir:
+            base_path = Path(temp_dir)
+            database_path = base_path / "app.db"
+            os.environ["RAG_AGENT_DATABASE_PATH"] = str(database_path)
+            os.environ["RAG_AGENT_UPLOAD_DIR"] = str(base_path / "uploads")
+            os.environ["RAG_AGENT_CHROMA_DIR"] = str(base_path / "chroma")
+
+            try:
+                with patch(
+                    "app.services.rag_service.generate_rag_answer",
+                    return_value="DeepSeek generated answer from company sources.",
+                ) as mock_generate:
+                    with TestClient(create_app()) as client:
+                        upload_response = client.post(
+                            "/documents/upload",
+                            files={
+                                "file": (
+                                    "refund_policy.md",
+                                    b"Refund policy: refunds are handled within 7 business days.",
+                                    "text/markdown",
+                                )
+                            },
+                        )
+                        document_id = upload_response.json()["id"]
+                        client.post(
+                            f"/documents/{document_id}/chunks",
+                            params={"chunk_size": 80, "chunk_overlap": 10},
+                        )
+                        client.post(f"/documents/{document_id}/embeddings")
+
+                        answer_response = client.post(
+                            "/rag/answer",
+                            json={"question": "How long do refunds take?", "top_k": 2},
+                        )
+
+                self.assertEqual(answer_response.status_code, 200)
+                payload = answer_response.json()
+                self.assertEqual(payload["answer"], "DeepSeek generated answer from company sources.")
+                self.assertFalse(payload["escalated_to_ticket"])
+                mock_generate.assert_called_once()
             finally:
                 os.environ.pop("RAG_AGENT_DATABASE_PATH", None)
                 os.environ.pop("RAG_AGENT_UPLOAD_DIR", None)
@@ -170,28 +217,29 @@ class RagAnswerTest(unittest.TestCase):
             os.environ["RAG_AGENT_CHROMA_DIR"] = str(base_path / "chroma")
 
             try:
-                with TestClient(create_app()) as client:
-                    upload_response = client.post(
-                        "/documents/upload",
-                        files={
-                            "file": (
-                                "refund_policy.md",
-                                b"Refund policy: refunds are handled within 7 business days.",
-                                "text/markdown",
-                            )
-                        },
-                    )
-                    document_id = upload_response.json()["id"]
-                    client.post(
-                        f"/documents/{document_id}/chunks",
-                        params={"chunk_size": 80, "chunk_overlap": 10},
-                    )
-                    client.post(f"/documents/{document_id}/embeddings")
+                with patch("app.services.rag_service.generate_rag_answer") as mock_generate:
+                    with TestClient(create_app()) as client:
+                        upload_response = client.post(
+                            "/documents/upload",
+                            files={
+                                "file": (
+                                    "refund_policy.md",
+                                    b"Refund policy: refunds are handled within 7 business days.",
+                                    "text/markdown",
+                                )
+                            },
+                        )
+                        document_id = upload_response.json()["id"]
+                        client.post(
+                            f"/documents/{document_id}/chunks",
+                            params={"chunk_size": 80, "chunk_overlap": 10},
+                        )
+                        client.post(f"/documents/{document_id}/embeddings")
 
-                    answer_response = client.post(
-                        "/rag/answer",
-                        json={"question": "What is the vacation policy?", "top_k": 2},
-                    )
+                        answer_response = client.post(
+                            "/rag/answer",
+                            json={"question": "What is the vacation policy?", "top_k": 2},
+                        )
 
                 self.assertEqual(answer_response.status_code, 200)
                 payload = answer_response.json()
@@ -200,6 +248,7 @@ class RagAnswerTest(unittest.TestCase):
                 self.assertIsInstance(payload["ticket_id"], int)
                 self.assertIn("未找到足够可靠", payload["answer"])
                 self.assertNotIn("Refund policy", payload["answer"])
+                mock_generate.assert_not_called()
             finally:
                 os.environ.pop("RAG_AGENT_DATABASE_PATH", None)
                 os.environ.pop("RAG_AGENT_UPLOAD_DIR", None)

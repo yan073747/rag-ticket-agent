@@ -25,6 +25,8 @@ class DockerConfigTest(unittest.TestCase):
         self.assertIn("dockerfile: backend/Dockerfile", content)
         self.assertIn('"8000:8000"', content)
         self.assertIn("RAG_AGENT_DATABASE_PATH: /app/data/app.db", content)
+        self.assertIn("DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}", content)
+        self.assertIn("DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-v4-flash}", content)
         self.assertIn("./backend/data:/app/data", content)
         self.assertIn("./backend/uploads:/app/uploads", content)
 

@@ -11,6 +11,10 @@ services:
       RAG_AGENT_DATABASE_PATH: /app/data/app.db
       RAG_AGENT_CHROMA_DIR: /app/data/chroma
       RAG_AGENT_UPLOAD_DIR: /app/uploads
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-v4-flash}
+      DEEPSEEK_TIMEOUT_SECONDS: ${DEEPSEEK_TIMEOUT_SECONDS:-30}
     volumes:
       - ./backend/data:/app/data
       - ./backend/uploads:/app/uploads

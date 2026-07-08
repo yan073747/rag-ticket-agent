@@ -1,5 +1,6 @@
 from app.core.config import get_chroma_dir, get_database_path
 from app.db.database import create_qa_record, create_ticket_record
+from app.services.llm_service import LLMServiceError, generate_rag_answer
 from app.services.vector_store import search_chunks
 
 LOW_CONFIDENCE_THRESHOLD = 0.4
@@ -24,11 +25,6 @@ def answer_question(
     if not sources:
         confidence = 0.0
     else:
-        context = "\n".join(
-            f"[来源 {index + 1}] {source['content']}"
-            for index, source in enumerate(sources)
-        )
-        answer = f"根据企业知识库内容，可以回答：\n{context}"
         confidence = _distance_to_confidence(float(sources[0]["distance"]))
         confidence = _boost_chinese_confidence(question, sources, confidence)
         confidence = _cap_confidence_for_missing_required_facts(question, sources, confidence)
@@ -42,6 +38,8 @@ def answer_question(
             question=question,
             reason=f"low confidence: {confidence}",
         )
+    else:
+        answer = _generate_answer_with_fallback(question, sources)
 
     qa_record_id = create_qa_record(
         get_database_path(),
@@ -60,6 +58,26 @@ def answer_question(
         "escalated_to_ticket": escalated_to_ticket,
         "ticket_id": ticket_id,
     }
+
+
+def _generate_answer_with_fallback(
+    question: str,
+    sources: list[dict[str, int | float | str]],
+) -> str:
+    try:
+        return generate_rag_answer(question, sources)
+    except LLMServiceError:
+        return _build_source_based_answer(sources)
+
+
+def _build_source_based_answer(
+    sources: list[dict[str, int | float | str]],
+) -> str:
+    context = "\n".join(
+        f"[来源 {index + 1}] {source['content']}"
+        for index, source in enumerate(sources)
+    )
+    return f"根据企业知识库内容，可以回答：\n{context}"
 
 
 def _distance_to_confidence(distance: float) -> float:

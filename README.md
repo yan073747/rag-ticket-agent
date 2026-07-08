@@ -91,6 +91,7 @@
 - 完整链路：从文档入库到 RAG 回答，再到转工单和指标评估。
 - 可解释：每次回答都返回来源片段和置信度。
 - 不乱答：低置信度或事实缺失时自动转人工。
+- 大模型增强：高置信度检索结果可交给 DeepSeek 生成更自然的客服回复。
 - 可运营：后台能查看文档、问答、工单和评估指标。
 - 可展示：提供截图、架构说明、演示脚本和简历描述。
 
@@ -99,6 +100,7 @@
 - 后端：Python、FastAPI
 - 数据库：SQLite，后续可升级 PostgreSQL
 - 向量库：Chroma
+- 大模型：DeepSeek API，默认模型 `deepseek-v4-flash`
 - 前端：HTML、CSS、JavaScript，后续可升级 React 或 Next.js
 - 工程化：Docker、docker-compose
 
@@ -187,6 +189,14 @@
 - 新增简历项目描述
 - 强化 GitHub README 首页展示内容
 
+增强阶段已完成的目标：
+
+- 接入 DeepSeek Chat Completions API
+- 默认使用 `deepseek-v4-flash` 作为 RAG 生成模型
+- 保留无 API Key 时的本地来源拼接回退能力
+- 低置信度或事实缺失时不调用大模型，直接转人工工单
+- 更新 Docker 和环境变量配置，支持一键启动时传入 DeepSeek API Key
+
 ## 本地运行后端
 
 进入后端目录：
@@ -263,6 +273,15 @@ Docker 启动时会自动完成：
 - 复制后端代码和前端静态页面。
 - 启动 FastAPI 服务。
 - 将容器端口 `8000` 映射到本机 `localhost:8000`。
+
+如需启用 DeepSeek 生成答案，在启动前设置环境变量：
+
+```powershell
+$env:DEEPSEEK_API_KEY="你的 DeepSeek API Key"
+docker compose up --build
+```
+
+如果不设置 `DEEPSEEK_API_KEY`，系统仍然可以运行，会自动回退为本地来源拼接回答。
 
 数据持久化目录：
 
