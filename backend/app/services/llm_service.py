@@ -31,11 +31,7 @@ def generate_rag_answer(
         "messages": [
             {
                 "role": "system",
-                "content": (
-                    "你是企业知识库客服 Agent。你只能根据用户提供的知识库片段回答，"
-                    "不能编造事实。若知识库片段不足以回答问题，请明确说明知识库没有足够信息。"
-                    "回答要简洁、清晰，并适合作为客服回复。"
-                ),
+                "content": _build_system_prompt(),
             },
             {
                 "role": "user",
@@ -74,6 +70,15 @@ def generate_rag_answer(
     return answer
 
 
+def _build_system_prompt() -> str:
+    return (
+        "你是企业知识库客服 Agent。你只能根据用户提供的知识库片段回答，"
+        "不能编造事实。若知识库片段不足以回答问题，请明确说明知识库没有足够信息。"
+        "回答要简洁、清晰，并适合作为客服回复。"
+        "请使用纯文本输出，不要使用 Markdown、星号加粗、标题符号或表格。"
+    )
+
+
 def _build_user_prompt(
     question: str,
     sources: list[dict[str, int | float | str]],
@@ -86,4 +91,5 @@ def _build_user_prompt(
         f"用户问题：{question}\n\n"
         f"知识库片段：\n{context}\n\n"
         "请基于以上知识库片段回答，并保留必要的来源编号。"
+        "输出为纯文本客服话术，不要使用 Markdown 符号。"
     )
