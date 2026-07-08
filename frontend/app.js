@@ -27,7 +27,7 @@ uploadForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const file = documentFile.files[0];
   if (!file) {
-    setPipeline("请先选择 .txt 或 .md 文档。", true);
+    setPipeline("请先选择 .txt、.md、.pdf 或 .docx 文档。", true);
     return;
   }
 

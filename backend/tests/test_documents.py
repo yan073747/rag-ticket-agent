@@ -4,6 +4,11 @@ import tempfile
 import unittest
 import warnings
 from pathlib import Path
+from io import BytesIO
+
+from docx import Document
+from pypdf import PdfWriter
+from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
 
 warnings.filterwarnings(
     "ignore",
@@ -13,6 +18,41 @@ warnings.filterwarnings(
 from fastapi.testclient import TestClient
 
 from app.main import create_app
+
+
+def build_pdf_bytes_with_text(text: str) -> bytes:
+    writer = PdfWriter()
+    page = writer.add_blank_page(width=300, height=200)
+    font_resource = DictionaryObject(
+        {
+            NameObject("/F1"): DictionaryObject(
+                {
+                    NameObject("/Type"): NameObject("/Font"),
+                    NameObject("/Subtype"): NameObject("/Type1"),
+                    NameObject("/BaseFont"): NameObject("/Helvetica"),
+                }
+            )
+        }
+    )
+    page[NameObject("/Resources")] = DictionaryObject({NameObject("/Font"): font_resource})
+    stream = DecodedStreamObject()
+    safe_text = text.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+    stream.set_data(f"BT /F1 12 Tf 50 150 Td ({safe_text}) Tj ET".encode("utf-8"))
+    page[NameObject("/Contents")] = writer._add_object(stream)
+
+    output = BytesIO()
+    writer.write(output)
+    return output.getvalue()
+
+
+def build_docx_bytes_with_text(*paragraphs: str) -> bytes:
+    document = Document()
+    for paragraph in paragraphs:
+        document.add_paragraph(paragraph)
+
+    output = BytesIO()
+    document.save(output)
+    return output.getvalue()
 
 
 class DocumentUploadTest(unittest.TestCase):
@@ -114,6 +154,83 @@ class DocumentUploadTest(unittest.TestCase):
                 self.assertEqual(len(rows), 3)
                 self.assertEqual(rows[0][0], 0)
                 self.assertIn("Refunds take 7 days", rows[0][1])
+            finally:
+                os.environ.pop("RAG_AGENT_DATABASE_PATH", None)
+                os.environ.pop("RAG_AGENT_UPLOAD_DIR", None)
+
+    def test_split_uploaded_pdf_document_extracts_text(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base_path = Path(temp_dir)
+            database_path = base_path / "app.db"
+            upload_dir = base_path / "uploads"
+            os.environ["RAG_AGENT_DATABASE_PATH"] = str(database_path)
+            os.environ["RAG_AGENT_UPLOAD_DIR"] = str(upload_dir)
+
+            try:
+                with TestClient(create_app()) as client:
+                    upload_response = client.post(
+                        "/documents/upload",
+                        files={
+                            "file": (
+                                "refund_policy.pdf",
+                                build_pdf_bytes_with_text(
+                                    "Refund policy: refunds are handled within 7 business days."
+                                ),
+                                "application/pdf",
+                            )
+                        },
+                    )
+                    document_id = upload_response.json()["id"]
+
+                    split_response = client.post(
+                        f"/documents/{document_id}/chunks",
+                        params={"chunk_size": 80, "chunk_overlap": 10},
+                    )
+
+                self.assertEqual(upload_response.status_code, 201)
+                self.assertEqual(split_response.status_code, 201)
+                payload = split_response.json()
+                self.assertEqual(payload["document_id"], document_id)
+                self.assertIn("Refund policy", payload["chunks"][0]["content"])
+            finally:
+                os.environ.pop("RAG_AGENT_DATABASE_PATH", None)
+                os.environ.pop("RAG_AGENT_UPLOAD_DIR", None)
+
+    def test_split_uploaded_docx_document_extracts_text(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base_path = Path(temp_dir)
+            database_path = base_path / "app.db"
+            upload_dir = base_path / "uploads"
+            os.environ["RAG_AGENT_DATABASE_PATH"] = str(database_path)
+            os.environ["RAG_AGENT_UPLOAD_DIR"] = str(upload_dir)
+
+            try:
+                with TestClient(create_app()) as client:
+                    upload_response = client.post(
+                        "/documents/upload",
+                        files={
+                            "file": (
+                                "leave_policy.docx",
+                                build_docx_bytes_with_text(
+                                    "Annual leave policy",
+                                    "Employees receive 10 days of annual leave.",
+                                ),
+                                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            )
+                        },
+                    )
+                    document_id = upload_response.json()["id"]
+
+                    split_response = client.post(
+                        f"/documents/{document_id}/chunks",
+                        params={"chunk_size": 80, "chunk_overlap": 10},
+                    )
+
+                self.assertEqual(upload_response.status_code, 201)
+                self.assertEqual(split_response.status_code, 201)
+                payload = split_response.json()
+                self.assertEqual(payload["document_id"], document_id)
+                self.assertIn("Annual leave policy", payload["chunks"][0]["content"])
             finally:
                 os.environ.pop("RAG_AGENT_DATABASE_PATH", None)
                 os.environ.pop("RAG_AGENT_UPLOAD_DIR", None)

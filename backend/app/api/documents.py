@@ -10,12 +10,17 @@ from app.db.database import (
     get_document_record,
     replace_document_chunks,
 )
+from app.services.document_parser import (
+    SUPPORTED_DOCUMENT_EXTENSIONS,
+    DocumentParseError,
+    parse_document_text,
+)
 from app.services.text_splitter import split_text
 from app.services.vector_store import index_chunks
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
-ALLOWED_EXTENSIONS = {".txt", ".md"}
+ALLOWED_EXTENSIONS = SUPPORTED_DOCUMENT_EXTENSIONS
 
 
 @router.post("/upload", status_code=status.HTTP_201_CREATED)
@@ -25,7 +30,7 @@ async def upload_document(file: UploadFile = File(...)) -> dict[str, int | str]:
     if not filename or suffix not in ALLOWED_EXTENSIONS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Only .txt and .md files are supported.",
+            detail="Only .txt, .md, .pdf and .docx files are supported.",
         )
 
     upload_dir = get_upload_dir()
@@ -71,11 +76,11 @@ def split_document(
 
     try:
         chunks = split_text(
-            file_path.read_text(encoding="utf-8"),
+            parse_document_text(file_path),
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,
         )
-    except ValueError as error:
+    except (DocumentParseError, ValueError) as error:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(error),

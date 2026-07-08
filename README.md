@@ -14,7 +14,7 @@
 
 ## 功能亮点
 
-- 文档上传：支持 `.txt`、`.md` 企业知识库文档上传。
+- 文档上传：支持 `.txt`、`.md`、`.pdf`、`.docx` 企业知识库文档上传。
 - 文本切分：支持配置切分长度和重叠长度，避免长文档直接检索效果差。
 - Embedding + Chroma：将文本块写入向量库，支持基于问题的相似度检索。
 - RAG 回答：返回答案、置信度和来源引用，避免黑盒式回答。
@@ -101,6 +101,7 @@
 - 数据库：SQLite，后续可升级 PostgreSQL
 - 向量库：Chroma
 - 大模型：DeepSeek API，默认模型 `deepseek-v4-flash`
+- 文档解析：pypdf、python-docx
 - 前端：HTML、CSS、JavaScript，后续可升级 React 或 Next.js
 - 工程化：Docker、docker-compose
 
@@ -119,6 +120,7 @@
 
 - 实现文档上传接口
 - 支持上传 `.txt` 和 `.md` 企业知识库文档
+- 支持上传 `.pdf` 和 `.docx` 企业知识库文档
 - 将上传文件保存到 `backend/uploads/`
 - 将文档文件名和路径写入 `documents` 表
 - 为上传流程编写自动化测试
@@ -315,6 +317,8 @@ POST /documents/upload
 ```text
 .txt
 .md
+.pdf
+.docx
 ```
 
 使用 Windows PowerShell 测试上传：
