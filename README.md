@@ -2,6 +2,8 @@
 
 这是一个面向求职作品集的 AI Agent 项目，目标岗位包括 AI Agent 开发工程师、RAG 应用工程师、智能客服工程师、Prompt 工程师和 AI Agent 实施交付工程师。
 
+当前版本已经完成作品集展示所需的主要能力：DeepSeek RAG 生成、PDF / Word 文档解析、低置信度自动转工单、后台记录、运营指标、批量评测报告和 Docker 一键启动。
+
 ## 项目为什么有价值
 
 普通聊天机器人只能回答问题，但企业真实场景需要完整链路：
@@ -17,12 +19,28 @@
 - 文档上传：支持 `.txt`、`.md`、`.pdf`、`.docx` 企业知识库文档上传。
 - 文本切分：支持配置切分长度和重叠长度，避免长文档直接检索效果差。
 - Embedding + Chroma：将文本块写入向量库，支持基于问题的相似度检索。
-- RAG 回答：返回答案、置信度和来源引用，避免黑盒式回答。
+- DeepSeek RAG 回答：检索结果可信时调用 DeepSeek 生成自然客服话术。
+- 来源引用：返回答案、置信度和来源片段，避免黑盒式回答。
 - 低置信度转工单：知识库无法可靠回答时自动创建人工客服工单。
 - 候选片段提示：低置信度时展示候选片段，仅供人工处理参考。
 - 后台记录：查看文档、问答、工单记录。
 - 效果评估：统计文档数、问答数、工单数、平均置信度和转人工比例。
+- 批量评测：基于 JSON 问题集生成 Markdown 评测报告，统计通过率、关键词命中率和转人工准确率。
 - 演示数据重置：一键清空文档记录、问答记录、工单和向量索引，方便录制演示。
+
+## 核心能力矩阵
+
+| 能力 | 当前实现 |
+| --- | --- |
+| 文档入库 | 支持 TXT、Markdown、PDF、DOCX |
+| 文本处理 | 可配置切分长度和重叠长度 |
+| 向量检索 | Chroma Top K 相似度检索 |
+| 生成回答 | DeepSeek `deepseek-v4-flash`，无 Key 时自动回退 |
+| 可信控制 | 低置信度和事实缺失场景自动转工单 |
+| 可解释性 | 返回置信度、来源片段和候选片段 |
+| 后台运营 | 文档、问答、工单记录和运营指标 |
+| 效果评测 | 批量评测脚本和 Markdown 评测报告 |
+| 工程化 | Docker Compose 一键启动 |
 
 ## 架构与作品集材料
 
@@ -288,6 +306,17 @@ docker compose up --build
 
 如果不设置 `DEEPSEEK_API_KEY`，系统仍然可以运行，会自动回退为本地来源拼接回答。
 
+也可以在项目根目录创建本地 `.env` 文件：
+
+```env
+DEEPSEEK_API_KEY=你的 DeepSeek API Key
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_MODEL=deepseek-v4-flash
+DEEPSEEK_TIMEOUT_SECONDS=30
+```
+
+`.env` 已被 `.gitignore` 忽略，不会上传到 GitHub。
+
 数据持久化目录：
 
 - SQLite 数据库：`backend/data/app.db`
@@ -336,6 +365,18 @@ docs/evaluation/evaluation_report.md
 - 低置信度转人工准确率
 - 平均置信度
 - 平均来源数量
+
+## 部署准备说明
+
+当前项目已经支持 Docker Compose，本地和云服务器部署流程基本一致：
+
+1. 在服务器安装 Docker 和 Docker Compose。
+2. 拉取 GitHub 仓库代码。
+3. 在项目根目录创建 `.env`，配置 `DEEPSEEK_API_KEY`。
+4. 执行 `docker compose up --build -d` 后台启动。
+5. 开放服务器 `8000` 端口，或通过 Nginx 反向代理到域名。
+
+部署时不要把 `.env`、`backend/data/`、`backend/uploads/` 提交到 GitHub。生产环境建议将 SQLite 升级为 PostgreSQL，并给后台接口增加登录鉴权。
 
 ## 文档上传接口
 

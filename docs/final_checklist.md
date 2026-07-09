@@ -2,7 +2,7 @@
 
 ## 当前结论
 
-项目已经具备作品集展示的基础条件：功能链路完整、前端可演示、README 有截图、Docker 可一键启动、自动化测试覆盖核心流程。
+项目已经具备作品集展示和面试讲解条件：功能链路完整、前端可演示、README 有截图、Docker 可一键启动、DeepSeek 已接入、PDF / Word 可入库、批量评测报告可展示，自动化测试覆盖核心流程。
 
 ## 必备项检查
 
@@ -14,7 +14,10 @@
 | 演示视频脚本 | 已完成 | `docs/portfolio_package.md` 中已有 2-3 分钟脚本 |
 | 简历项目描述 | 已完成 | `docs/portfolio_package.md` 中已有一句话版本和项目经历版本 |
 | Docker 一键启动 | 已完成 | `docker compose up --build` 已能构建并启动项目 |
-| 自动化测试 | 已完成 | 当前全量测试 26 个用例通过 |
+| DeepSeek RAG | 已完成 | 高置信度问题调用 DeepSeek 生成客服式回答，无 Key 时自动回退 |
+| PDF / Word 文档解析 | 已完成 | 支持 `.pdf` 和 `.docx` 企业制度文档入库 |
+| 批量评测报告 | 已完成 | `docs/evaluation/evaluation_report.md` 中包含通过率、关键词命中率和转人工准确率 |
+| 自动化测试 | 已完成 | 当前全量测试 42 个用例通过 |
 | `.gitignore` | 已完成 | 已忽略数据库、上传文件、缓存、虚拟环境 |
 | `.dockerignore` | 已完成 | 已避免把数据库、上传文件、缓存打进镜像 |
 
@@ -31,6 +34,7 @@
    - `docs/architecture.md`
    - `docs/portfolio_package.md`
    - `docs/final_checklist.md`
+   - `docs/evaluation/`
    - `docs/screenshots/`
 
 3. 已删除的临时手工测试文件：
@@ -45,7 +49,7 @@
 ## 面试前演示顺序
 
 1. 展示 README 首页，说明项目不是普通聊天机器人，而是完整 RAG + 工单 Agent。
-2. 展示架构图，说明文档入库、向量检索、RAG 回答、低置信度转工单和后台指标。
+2. 展示架构图，说明文档入库、向量检索、DeepSeek RAG 回答、低置信度转工单和后台指标。
 3. 使用 Docker 一键启动：
 
 ```bash
@@ -53,15 +57,21 @@ docker compose up --build
 ```
 
 4. 打开 `http://localhost:8000/`，点击“重置演示数据”。
-5. 上传企业制度文档，展示上传、切分、向量化。
+5. 上传企业制度文档，展示 PDF / Word 上传、正文提取、切分、向量化。
 6. 提问文档内问题，展示答案、置信度和来源引用。
 7. 提问文档外问题，展示低置信度转工单。
 8. 展示后台问答记录、工单记录和运营指标。
+9. 展示 `docs/evaluation/evaluation_report.md`，说明批量评测通过率、关键词命中率和转人工准确率。
 
 ## 后续优化方向
 
 1. 接入真实 Embedding 模型，例如 OpenAI Embedding、BGE 或 Qwen Embedding。
-2. 接入 LLM 生成更自然的客服话术，而不是直接拼接来源文本。
-3. 增加工单状态流转，例如 `open`、`processing`、`resolved`。
+2. 增加工单状态流转，例如 `open`、`processing`、`resolved`。
+3. 增加管理员登录和权限控制。
 4. 增加人工标注反馈，用于评估 RAG 回答质量。
 5. 将 SQLite 升级为 PostgreSQL，贴近真实企业部署。
+6. 部署到云服务器，并接入作品集网站统一入口。
+
+## 当前项目状态
+
+项目 1 可以视为“增强版完成”。后续不建议继续无限堆功能，下一步应进入作品集项目 2 的选题和规划，同时保留项目 1 用于简历、GitHub、演示视频和作品集网站展示。
