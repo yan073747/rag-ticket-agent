@@ -8,7 +8,7 @@ Add an offline batch evaluation workflow for the enterprise knowledge base RAG a
 
 - Use a JSON question set as input.
 - Reuse the existing RAG service instead of creating another answer pipeline.
-- Produce a Markdown report suitable for GitHub and portfolio review.
+- Produce a Markdown report suitable for GitHub technical review and reproducible demo verification.
 - Track both answer quality and escalation behavior.
 
 ## Evaluation Case Format

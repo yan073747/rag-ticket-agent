@@ -2,7 +2,7 @@
 
 ## 当前结论
 
-项目已经具备作品集展示和面试讲解条件：功能链路完整、前端可演示、README 有截图、Docker 可一键启动、DeepSeek 已接入、PDF / Word 可入库、批量评测报告可展示，自动化测试覆盖核心流程。
+项目已经具备技术展示和可复现演示条件：功能链路完整、前端可演示、README 有截图、Docker 可一键启动、DeepSeek 已接入、PDF / Word 可入库、批量评测报告可展示，自动化测试覆盖核心流程。
 
 ## 必备项检查
 
@@ -11,8 +11,8 @@
 | README 项目介绍 | 已完成 | 已包含项目价值、功能亮点、截图、演示流程、技术栈和 Docker 启动说明 |
 | 架构图 | 已完成 | `docs/architecture.md` 中包含 Mermaid 架构图和核心流程 |
 | 功能截图 | 已完成 | `docs/screenshots/` 中已有 6 张截图和说明 |
-| 演示视频脚本 | 已完成 | `docs/portfolio_package.md` 中已有 2-3 分钟脚本 |
-| 简历项目描述 | 已完成 | `docs/portfolio_package.md` 中已有一句话版本和项目经历版本 |
+| 演示脚本 | 已完成 | `docs/technical_showcase.md` 中已有 2-3 分钟脚本 |
+| 技术说明材料 | 已完成 | `docs/technical_showcase.md` 中已有一句话版本和工程实践要点 |
 | Docker 一键启动 | 已完成 | `docker compose up --build` 已能构建并启动项目 |
 | DeepSeek RAG | 已完成 | 高置信度问题调用 DeepSeek 生成客服式回答，无 Key 时自动回退 |
 | PDF / Word 文档解析 | 已完成 | 支持 `.pdf` 和 `.docx` 企业制度文档入库 |
@@ -29,10 +29,10 @@
    - `*.db`
    - `__pycache__/`
 
-2. 可以保留的作品集材料：
+2. 可以保留的技术展示材料：
    - `README.md`
    - `docs/architecture.md`
-   - `docs/portfolio_package.md`
+   - `docs/technical_showcase.md`
    - `docs/final_checklist.md`
    - `docs/evaluation/`
    - `docs/screenshots/`
@@ -44,9 +44,9 @@
    - `backend/invoice_request.json`
    - `backend/vacation_request.json`
 
-这些文件曾用于手工 curl 测试，正式上传 GitHub 前已清理。
+这些文件曾用于手工 curl 测试，正式保留源码时已经清理。
 
-## 面试前演示顺序
+## 可复现演示顺序
 
 1. 展示 README 首页，说明项目不是普通聊天机器人，而是完整 RAG + 工单 Agent。
 2. 展示架构图，说明文档入库、向量检索、DeepSeek RAG 回答、低置信度转工单和后台指标。
@@ -70,8 +70,8 @@ docker compose up --build
 3. 增加管理员登录和权限控制。
 4. 增加人工标注反馈，用于评估 RAG 回答质量。
 5. 将 SQLite 升级为 PostgreSQL，贴近真实企业部署。
-6. 部署到云服务器，并接入作品集网站统一入口。
+6. 部署到云服务器，并接入统一技术演示站点入口。
 
 ## 当前项目状态
 
-项目 1 可以视为“增强版完成”。后续不建议继续无限堆功能，下一步应进入作品集项目 2 的选题和规划，同时保留项目 1 用于简历、GitHub、演示视频和作品集网站展示。
+项目 1 可以视为“增强版完成”。后续不建议继续无限堆功能，下一步可以进入其他技术展示项目的规划和实现，同时保留项目 1 作为企业知识库 RAG 工程实践案例。
