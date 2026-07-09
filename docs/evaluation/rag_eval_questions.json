@@ -1,0 +1,32 @@
+[
+  {
+    "id": "leave_annual_10_to_20_years",
+    "question": "员工入职满10年但不满20年，每年可以享受多少天年假？",
+    "expected_keywords": ["10天", "年假"],
+    "should_escalate": false
+  },
+  {
+    "id": "expense_shanghai_standard",
+    "question": "普通员工出差到上海，住宿报销标准是多少？出差餐饮补贴每天多少元？",
+    "expected_keywords": ["350元", "100元"],
+    "should_escalate": false
+  },
+  {
+    "id": "security_offboarding_account",
+    "question": "员工离开公司后，其系统账号和权限应在多长时间内完成变更或注销？",
+    "expected_keywords": ["当日", "权限", "账号"],
+    "should_escalate": false
+  },
+  {
+    "id": "unknown_revenue_and_headcount",
+    "question": "星辰科技有限公司2024年的年度营收是多少？公司目前有多少名员工？",
+    "expected_keywords": [],
+    "should_escalate": true
+  },
+  {
+    "id": "unknown_address_and_shuttle",
+    "question": "星辰科技公司的办公地址在哪里？公司是否提供班车服务？班车的路线和时间安排是怎样的？",
+    "expected_keywords": [],
+    "should_escalate": true
+  }
+]

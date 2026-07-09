@@ -93,6 +93,7 @@
 - 不乱答：低置信度或事实缺失时自动转人工。
 - 大模型增强：高置信度检索结果可交给 DeepSeek 生成更自然的客服回复。
 - 可运营：后台能查看文档、问答、工单和评估指标。
+- 可评测：提供批量评测脚本，统计关键词命中率、转人工准确率和平均置信度。
 - 可展示：提供截图、架构说明、演示脚本和简历描述。
 
 ## 技术栈
@@ -198,6 +199,8 @@
 - 保留无 API Key 时的本地来源拼接回退能力
 - 低置信度或事实缺失时不调用大模型，直接转人工工单
 - 更新 Docker 和环境变量配置，支持一键启动时传入 DeepSeek API Key
+- 支持 PDF / Word 文档解析，企业制度文档可直接入库
+- 新增批量评测脚本和 Markdown 评测报告
 
 ## 本地运行后端
 
@@ -303,6 +306,36 @@ docker compose down
 cd backend
 python -m unittest discover -s tests -v
 ```
+
+## 运行批量评测
+
+先确保已经上传并向量化企业制度文档，然后在后端目录执行：
+
+```bash
+cd backend
+python scripts/evaluate_rag.py
+```
+
+默认问题集：
+
+```text
+docs/evaluation/rag_eval_questions.json
+```
+
+默认输出报告：
+
+```text
+docs/evaluation/evaluation_report.md
+```
+
+评测脚本会统计：
+
+- 总问题数
+- 通过率
+- 关键词命中率
+- 低置信度转人工准确率
+- 平均置信度
+- 平均来源数量
 
 ## 文档上传接口
 
