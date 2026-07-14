@@ -3,101 +3,171 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>企业知识库 RAG 客服工作台</title>
+    <title>企业知识库 RAG 工单助手</title>
+    <meta
+      name="description"
+      content="面向企业知识库问答、来源引用与低置信度转人工工单的 RAG Agent 演示。"
+    />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <header class="topbar">
-      <div>
-        <p class="eyebrow">企业知识库 RAG 客服 Agent</p>
-        <h1>企业知识库客服工作台</h1>
+      <a class="back-link" href="https://www.aiworkbox.cn/demos/rag-ticket">返回作品集</a>
+      <div class="brand">
+        <span class="brand-mark">R</span>
+        <div>
+          <strong>Enterprise RAG Ticket Agent</strong>
+          <small>Vercel static demo · 企业知识库 / 客服工单</small>
+        </div>
       </div>
-      <div class="status-pill" id="apiStatus">正在检查接口</div>
+      <div class="topbar-tags">
+        <span>RAG</span>
+        <span>Sources</span>
+        <span>Ticket Handoff</span>
+      </div>
     </header>
 
-    <main class="layout">
-      <section class="panel upload-panel" aria-labelledby="uploadTitle">
-        <div class="panel-header">
-          <div>
-            <p class="section-kicker">知识库</p>
-            <h2 id="uploadTitle">上传并入库</h2>
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Agent Demo 02</p>
+          <h1>企业知识库工单助手</h1>
+          <p class="hero-copy">
+            模拟文档入库、向量检索、RAG 回答、来源引用和低置信度转人工工单。面试演示不上传真实客户资料，只使用本地样例知识库。
+          </p>
+          <div class="hero-actions">
+            <button class="primary" id="seedButton" type="button">载入样例制度文档</button>
+            <button class="secondary" id="resetButton" type="button">重置演示</button>
           </div>
-          <span class="step-label">TXT / MD / PDF / DOCX</span>
         </div>
-        <form id="uploadForm" class="stack">
-          <label class="file-drop">
-            <input id="documentFile" name="file" type="file" accept=".txt,.md,.pdf,.docx" />
-            <span>选择企业文档</span>
-            <strong id="fileName">尚未选择文件</strong>
-          </label>
-          <div class="control-grid">
-            <label>
-              切分长度
-              <input id="chunkSize" type="number" min="40" max="1000" value="240" />
-            </label>
-            <label>
-              重叠长度
-              <input id="chunkOverlap" type="number" min="0" max="200" value="40" />
-            </label>
+        <aside class="status-card">
+          <span class="pulse"></span>
+          <div>
+            <strong id="statusTitle">等待文档入库</strong>
+            <p id="statusDetail">建议先载入样例制度，再提问并观察来源引用。</p>
           </div>
-          <button class="primary" type="submit">上传、切分、向量化</button>
-        </form>
-        <div class="activity" id="pipelineLog">等待上传文档。</div>
+        </aside>
       </section>
 
-      <section class="panel answer-panel" aria-labelledby="askTitle">
-        <div class="panel-header">
-          <div>
-            <p class="section-kicker">RAG 问答</p>
-            <h2 id="askTitle">向知识库提问</h2>
-          </div>
-          <span class="step-label">必须返回来源</span>
-        </div>
-        <form id="questionForm" class="stack">
-          <label>
-            问题
-            <textarea id="questionInput" rows="4" placeholder="请输入要向知识库提问的问题"></textarea>
-          </label>
-          <div class="ask-row">
-            <label>
-              召回数量
-              <input id="topK" type="number" min="1" max="10" value="2" />
-            </label>
-            <button class="primary" type="submit">开始提问</button>
-          </div>
-        </form>
-        <article class="answer-box" id="answerBox">
-          <p class="muted">提问后会显示回答、置信度、来源引用和工单状态。</p>
+      <section class="metrics-grid" aria-label="运营指标">
+        <article class="metric-card">
+          <span>文档</span>
+          <strong id="metricDocs">0</strong>
+        </article>
+        <article class="metric-card">
+          <span>文本块</span>
+          <strong id="metricChunks">0</strong>
+        </article>
+        <article class="metric-card">
+          <span>问答</span>
+          <strong id="metricQa">0</strong>
+        </article>
+        <article class="metric-card">
+          <span>工单</span>
+          <strong id="metricTickets">0</strong>
         </article>
       </section>
 
-      <section class="panel metrics-panel" aria-labelledby="metricsTitle">
-        <div class="panel-header">
-          <div>
-            <p class="section-kicker">效果评估</p>
-            <h2 id="metricsTitle">运营指标</h2>
+      <section class="workspace">
+        <section class="panel">
+          <div class="panel-title">
+            <span>1</span>
+            <h2>知识库入库</h2>
           </div>
-          <div class="header-actions">
-            <button class="ghost danger" id="resetButton" type="button">重置演示数据</button>
-            <button class="ghost" id="refreshButton" type="button">刷新</button>
+          <form id="uploadForm" class="stack">
+            <label class="file-drop">
+              <input id="documentFile" name="file" type="file" accept=".txt,.md,.pdf,.docx" />
+              <span>选择企业文档</span>
+              <strong id="fileName">未选择文件，可直接使用样例文档</strong>
+            </label>
+            <div class="control-grid">
+              <label>
+                切分长度
+                <input id="chunkSize" type="number" min="80" max="800" value="240" />
+              </label>
+              <label>
+                重叠长度
+                <input id="chunkOverlap" type="number" min="0" max="200" value="40" />
+              </label>
+            </div>
+            <button class="primary" type="submit">上传、切分、向量化</button>
+          </form>
+          <div class="activity" id="pipelineLog">等待文档入库。</div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">
+            <span>2</span>
+            <h2>RAG 问答</h2>
           </div>
-        </div>
-        <div class="metrics-grid" id="metricsGrid"></div>
+          <form id="questionForm" class="stack">
+            <label>
+              问题
+              <textarea id="questionInput" rows="4" placeholder="例如：员工入职满 10 年但不满 20 年，每年可以享受多少天年假？"></textarea>
+            </label>
+            <div class="ask-row">
+              <label>
+                召回数量
+                <input id="topK" type="number" min="1" max="5" value="2" />
+              </label>
+              <button class="primary" type="submit">开始提问</button>
+            </div>
+          </form>
+          <div class="quick-questions" aria-label="示例问题">
+            <button type="button" data-question="员工入职满 10 年但不满 20 年，每年可以享受多少天年假？">年假制度</button>
+            <button type="button" data-question="报销金额超过 5000 元时需要谁审批？">报销审批</button>
+            <button type="button" data-question="公司 2024 年营收是多少？目前有多少员工？">低置信度转工单</button>
+          </div>
+          <article class="answer-box" id="answerBox">
+            <p class="muted">提问后会显示回答、置信度、来源片段和工单状态。</p>
+          </article>
+        </section>
       </section>
 
-      <section class="panel records-panel" aria-labelledby="recordsTitle">
-        <div class="panel-header">
-          <div>
-            <p class="section-kicker">后台</p>
-            <h2 id="recordsTitle">记录</h2>
+      <section class="panel flow-panel">
+        <div class="panel-title">
+          <span>G</span>
+          <h2>RAG 工程链路</h2>
+        </div>
+        <div class="flow">
+          <span>上传文档</span>
+          <i>→</i>
+          <span>文本切分</span>
+          <i>→</i>
+          <span>向量检索</span>
+          <i>→</i>
+          <span>生成回答</span>
+          <i>→</i>
+          <span>低置信度转工单</span>
+        </div>
+      </section>
+
+      <section class="records-grid">
+        <section class="panel">
+          <div class="panel-title">
+            <span>3</span>
+            <h2>后台记录</h2>
           </div>
-        </div>
-        <div class="tabs" role="tablist" aria-label="记录视图">
-          <button class="tab active" data-view="documents" type="button">文档</button>
-          <button class="tab" data-view="qa" type="button">问答</button>
-          <button class="tab" data-view="tickets" type="button">工单</button>
-        </div>
-        <div class="record-list" id="recordList"></div>
+          <div class="tabs" role="tablist" aria-label="记录视图">
+            <button class="tab active" data-view="documents" type="button">文档</button>
+            <button class="tab" data-view="qa" type="button">问答</button>
+            <button class="tab" data-view="tickets" type="button">工单</button>
+          </div>
+          <div class="record-list" id="recordList"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">
+            <span>4</span>
+            <h2>面试讲解要点</h2>
+          </div>
+          <ul class="talking-points">
+            <li>回答必须带来源片段，避免黑盒式生成。</li>
+            <li>知识库没有可靠答案时不硬答，自动创建人工工单。</li>
+            <li>运营指标记录文档数、问答数、工单数和转人工比例。</li>
+            <li>真实工程版使用 FastAPI、Chroma、SQLite、DeepSeek 与 Docker Compose。</li>
+          </ul>
+        </section>
       </section>
     </main>
 
