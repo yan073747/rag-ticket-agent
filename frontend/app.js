@@ -1,3 +1,5 @@
+const demoVersion = "20260715-static-demo";
+
 const fixtures = {
   documents: [
     {
