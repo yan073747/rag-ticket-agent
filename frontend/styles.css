@@ -54,10 +54,22 @@ button {
 }
 
 .back-link {
-  color: var(--muted);
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  color: var(--ink);
+  display: inline-flex;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 900;
+  min-height: 38px;
+  padding: 0 13px;
   text-decoration: none;
+  white-space: nowrap;
+}
+
+.back-link:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .brand,
@@ -147,11 +159,14 @@ p {
 }
 
 h1 {
-  max-width: 850px;
+  max-width: none;
   margin-bottom: 14px;
-  font-size: clamp(38px, 6vw, 72px);
-  line-height: 0.98;
+  font-size: clamp(38px, 4.2vw, 56px);
+  line-height: 1.06;
   letter-spacing: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 h2 {
@@ -539,6 +554,9 @@ textarea:focus {
 
   h1 {
     font-size: 38px;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
   }
 
   .metrics-grid,
